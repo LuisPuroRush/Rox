@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luis Convert</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: #2d3748;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 2s ease-in-out;
+        }
+        .upload-box {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-top: 30px;
+            animation: slideUp 1s ease-out;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-label {
+            background: #4a5568;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .file-label:hover {
+            background: #2d3748;
+        }
+        .recent-files {
+            margin-top: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .recent-files ul {
+            list-style: none;
+            padding: 0;
+        }
+        .recent-files li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .preview-box {
+            margin-top: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .page {
+            background: white;
+            margin: 10px auto;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 8.5in;
+            min-height: 11in;
+            position: relative;
+        }
+        .editor {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 300px;
+            outline: none;
+            position: relative;
+        }
+        .draggable {
+            position: absolute;
+            cursor: move;
+            border: 1px dashed #ccc;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 10px;
+            z-index: 10;
+        }
+        .toolbar button {
+            background: #4a5568;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .toolbar button:hover {
+            background: #2d3748;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .search-bar input {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background: #4a5568;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+            margin-top: 10px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Bienvenido a Luis Convert</h1>
+        <div class="recent-files" id="recentFiles">
+            <h2 class="text-xl font-bold mb-4">Archivos Recientes</h2>
+            <ul id="recentFilesList"></ul>
+        </div>
+        <div class="upload-box">
+            <label for="fileInput" class="file-label">
+                <i class="fas fa-upload mr-2"></i> Subir Archivo (PDF, Word, Excel, PowerPoint)
+            </label>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="preview-box" id="previewBox">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Buscar palabra...">
+                <button onclick="searchText()" class="toolbar-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="toolbar">
+                <button onclick="convertToPDF()"><i class="fas fa-file-pdf mr-2"></i> Convertir a PDF</button>
+                <button onclick="convertToWord()"><i class="fas fa-file-word mr-2"></i> Convertir a Word</button>
+                <button onclick="boldText()"><i class="fas fa-bold mr-2"></i> Negrita</button>
+                <button onclick="italicText()"><i class="fas fa-italic mr-2"></i> Cursiva</button>
+                <button onclick="underlineText()"><i class="fas fa-underline mr-2"></i> Subrayar</button>
+                <button onclick="changeFontSize('increase')"><i class="fas fa-font mr-2"></i> Aumentar Tamaño</button>
+                <button onclick="changeFontSize('decrease')"><i class="fas fa-font mr-2"></i> Reducir Tamaño</button>
+                <button onclick="addImage()"><i class="fas fa-image mr-2"></i> Agregar Imagen</button>
+                <button onclick="saveChanges()"><i class="fas fa-save mr-2"></i> Guardar Cambios</button>
+            </div>
+            <div id="pages"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.28.0/docxtemplater.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxjs@0.0.5/dist/pptxjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+        const fileInput = document.getElementById('fileInput');
+        const previewBox = document.getElementById('previewBox');
+        const pagesContainer = document.getElementById('pages');
+        const progressBar = document.getElementById('progressBar');
+        const recentFilesList = document.getElementById('recentFilesList');
+        let currentFileType = '';
+        let currentFileName = '';
+        let currentPages = [];
+
+        // IndexedDB setup
+        let db;
+        const request = indexedDB.open('LuisConvertDB', 1);
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+        };
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadRecentFiles();
+        };
+
+        fileInput.addEventListener('change', handleFileUpload);
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            currentFileName = file.name;
+            currentFileType = file.name.split('.').pop().toLowerCase();
+            previewBox.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            // Simulate progress for large files
+            const fileSize = file.size / 1024 / 1024; // Size in MB
+            const interval = setInterval(() => {
+                let currentWidth = parseInt(progressBar.style.width);
+                if (currentWidth < 100) {
+                    progressBar.style.width = `${currentWidth + 10}%`;
+                } else {
+                    clearInterval(interval);
+                }
+            }, fileSize > 5 ? 500 : 200); // Slower for larger files
+
+            const arrayBuffer = await file.arrayBuffer();
+            progressBar.style.width = '100%';
+
+            if (currentFileType === 'pdf') {
+                await renderPDF(arrayBuffer);
+            } else if (['doc', 'docx'].includes(currentFileType)) {
+                await renderWord(arrayBuffer);
+            } else if (['xls', 'xlsx'].includes(currentFileType)) {
+                await renderExcel(arrayBuffer);
+            } else if (['ppt', 'pptx'].includes(currentFileType)) {
+                await renderPowerPoint(arrayBuffer);
+            }
+
+            saveToIndexedDB(arrayBuffer);
+            makeElementsDraggable();
+        }
+
+        async function renderPDF(arrayBuffer) {
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            pagesContainer.innerHTML = '';
+            currentPages = [];
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                await page.render({ canvasContext: context, viewport }).promise;
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                pageDiv.appendChild(canvas);
+
+                const editor = document.createElement('div');
+                editor.className = 'editor';
+                editor.contentEditable = true;
+                const textContent = await page.getTextContent();
+                textContent.items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'draggable';
+                    div.style.left = `${item.transform[4]}px`;
+                    div.style.top = `${viewport.height - item.transform[5]}px`;
+                    div.innerText = item.str;
+                    editor.appendChild(div);
+                });
+
+                pageDiv.appendChild(editor);
+                pagesContainer.appendChild(pageDiv);
+                currentPages.push(pageDiv);
+            }
+        }
+
+        async function renderWord(arrayBuffer) {
+            const zip = new JSZip();
+            const unzipped = await zip.loadAsync(arrayBuffer);
+            const xmlFile = await unzipped.file('word/document.xml').async('string');
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlFile, 'text/xml');
+            const paragraphs = xmlDoc.getElementsByTagName('w:p');
+            pagesContainer.innerHTML = '';
+            currentPages = [];
+
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            const editor = document.createElement('div');
+            editor.className = 'editor';
+            editor.contentEditable = true;
+
+            Array.from(paragraphs).forEach(p => {
+                const textEls = p.getElementsByTagName('w:t');
+                const div = document.createElement('div');
+                div.className = 'draggable';
+                let text = '';
+                Array.from(textEls).forEach(t => text += t.textContent);
+                div.innerText = text;
+                editor.appendChild(div);
+            });
+
+            pageDiv.appendChild(editor);
+            pagesContainer.appendChild(pageDiv);
+            currentPages.push(pageDiv);
+        }
+
+        async function renderExcel(arrayBuffer) {
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+            pagesContainer.innerHTML = '';
+            currentPages = [];
+
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                const editor = document.createElement('div');
+                editor.className = 'editor';
+                editor.contentEditable = true;
+                const html = XLSX.utils.sheet_to_html(sheet);
+                const div = document.createElement('div');
+                div.className = 'draggable';
+                div.innerHTML = html;
+                editor.appendChild(div);
+                pageDiv.appendChild(editor);
+                pagesContainer.appendChild(pageDiv);
+                currentPages.push(pageDiv);
+            });
+        }
+
+        async function renderPowerPoint(arrayBuffer) {
+            pagesContainer.innerHTML = '';
+            currentPages = [];
+            // Note: pptxjs is limited; using basic text extraction as fallback
+            const zip = new JSZip();
+            const unzipped = await zip.loadAsync(arrayBuffer);
+            const slideFiles = Object.keys(unzipped.files).filter(f => f.startsWith('ppt/slides/slide'));
+            
+            for (const slideFile of slideFiles) {
+                const xml = await unzipped.file(slideFile).async('string');
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xml, 'text/xml');
+                const texts = xmlDoc.getElementsByTagName('a:t');
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                const editor = document.createElement('div');
+                editor.className = 'editor';
+                editor.contentEditable = true;
+
+                Array.from(texts).forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = 'draggable';
+                    div.innerText = t.textContent;
+                    editor.appendChild(div);
+                });
+
+                pageDiv.appendChild(editor);
+                pagesContainer.appendChild(pageDiv);
+                currentPages.push(pageDiv);
+            }
+        }
+
+        function makeElementsDraggable() {
+            const draggables = document.querySelectorAll('.draggable');
+            draggables.forEach(draggable => {
+                draggable.addEventListener('mousedown', (e) => {
+                    let offsetX = e.offsetX;
+                    let offsetY = e.offsetY;
+                    function move(e) {
+                        draggable.style.left = `${e.clientX - offsetX}px`;
+                        draggable.style.top = `${e.clientY - offsetY}px`;
+                    }
+                    document.addEventListener('mousemove', move);
+                    document.addEventListener('mouseup', () => {
+                        document.removeEventListener('mousemove', move);
+                    }, { once: true });
+                });
+            });
+        }
+
+        function convertToPDF() {
+            const doc = new jsPDF();
+            currentPages.forEach((page, index) => {
+                if (index > 0) doc.addPage();
+                const canvas = page.querySelector('canvas');
+                if (canvas) {
+                    doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10);
+                }
+                const editor = page.querySelector('.editor');
+                const text = editor.innerText;
+                doc.text(text, 10, canvas ? 150 : 10);
+            });
+            doc.save('converted.pdf');
+            alert('¡Convertido a PDF y descargado!');
+        }
+
+        function convertToWord() {
+            const zip = new JSZip();
+            const doc = new docxtemplater().loadZip(zip);
+            let content = '';
+            currentPages.forEach(page => {
+                content += page.querySelector('.editor').innerText + '\n';
+            });
+            doc.setData({ content });
+            doc.render();
+            const blob = doc.getZip().generate({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted.docx';
+            a.click();
+            alert('¡Convertido a Word y descargado!');
+        }
+
+        function boldText() {
+            document.execCommand('bold', false, null);
+        }
+
+        function italicText() {
+            document.execCommand('italic', false, null);
+        }
+
+        function underlineText() {
+            document.execCommand('underline', false, null);
+        }
+
+        function changeFontSize(direction) {
+            const selection = window.getSelection();
+            if (selection.rangeCount) {
+                const range = selection.getRangeAt(0);
+                const span = document.createElement('span');
+                const currentSize = parseInt(window.getComputedStyle(document.body).fontSize);
+                const newSize = direction === 'increase' ? currentSize + 2 : currentSize - 2;
+                span.style.fontSize = `${newSize}px`;
+                range.surroundContents(span);
+            }
+        }
+
+        function addImage() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.className = 'draggable';
+                    img.style.width = '100px';
+                    img.style.position = 'absolute';
+                    img.style.left = '50px';
+                    img.style.top = '50px';
+                    currentPages[0].querySelector('.editor').appendChild(img);
+                    makeElementsDraggable();
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+
+        function saveChanges() {
+            const content = pagesContainer.innerHTML;
+            const blob = new Blob([content], { type: 'text/html' });
+            saveToIndexedDB(blob);
+            alert('¡Cambios guardados!');
+        }
+
+        function saveToIndexedDB(data) {
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+            store.put({
+                name: currentFileName,
+                type: currentFileType,
+                data: data,
+                timestamp: new Date().toISOString()
+            });
+            loadRecentFiles();
+        }
+
+        function loadRecentFiles() {
+            const transaction = db.transaction(['files'], 'readonly');
+            const store = transaction.objectStore('files');
+            const request = store.getAll();
+            request.onsuccess = function(event) {
+                recentFilesList.innerHTML = '';
+                event.target.result.forEach(file => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${file.name} (${file.timestamp})</span>
+                        <div>
+                            <button onclick="loadFile(${file.id})" class="text-blue-500 mr-2"><i class="fas fa-folder-open"></i></button>
+                            <button onclick="deleteFile(${file.id})" class="text-red-500"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                    recentFilesList.appendChild(li);
+                });
+            };
+        }
+
+        function loadFile(id) {
+            const transaction = db.transaction(['files'], 'readonly');
+            const store = transaction.objectStore('files');
+            const request = store.get(id);
+            request.onsuccess = async function(event) {
+                const file = event.target.result;
+                currentFileName = file.name;
+                currentFileType = file.type;
+                previewBox.style.display = 'block';
+                if (file.type === 'pdf') {
+                    await renderPDF(file.data);
+                } else if (['doc', 'docx'].includes(file.type)) {
+                    await renderWord(file.data);
+                } else if (['xls', 'xlsx'].includes(file.type)) {
+                    await renderExcel(file.data);
+                } else if (['ppt', 'pptx'].includes(file.type)) {
+                    await renderPowerPoint(file.data);
+                } else {
+                    pagesContainer.innerHTML = file.data;
+                }
+                makeElementsDraggable();
+            };
+        }
+
+        function deleteFile(id) {
+            const transaction = db.transaction(['files'], 'readwrite');
+            const store = transaction.objectStore('files');
+            store.delete(id);
+            loadRecentFiles();
+        }
+
+        function searchText() {
+            const searchTerm = document.getElementById('searchInput').value;
+            if (!searchTerm) return;
+
+            currentPages.forEach(page => {
+                const editor = page.querySelector('.editor');
+                const elements = editor.querySelectorAll('.draggable');
+                elements.forEach(el => {
+                    const text = el.innerText;
+                    const regex = new RegExp(searchTerm, 'gi');
+                    el.innerHTML = text.replace(regex, match => `<span style="background: yellow">${match}</span>`);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
