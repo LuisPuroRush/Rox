@@ -8,52 +8,93 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: #e8ecef;
             min-height: 100vh;
             font-family: 'Arial', sans-serif;
+            margin: 0;
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #f3f6f9;
+            border-right: 1px solid #d3d3d3;
+            padding: 10px;
+            overflow-y: auto;
+            transition: width 0.3s ease;
+        }
+        .sidebar.hidden {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #0078d4;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .thumbnail {
+            width: 100%;
+            margin-bottom: 10px;
+            border: 1px solid #d3d3d3;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        .thumbnail:hover {
+            border-color: #0078d4;
+        }
+        .main-content {
+            flex: 1;
             padding: 20px;
+            overflow-y: auto;
         }
         .title {
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             font-weight: bold;
             text-align: center;
             color: #2d3748;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 2s ease-in-out;
+            margin-bottom: 20px;
         }
         .upload-box {
             background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin-top: 30px;
-            animation: slideUp 1s ease-out;
+            margin-bottom: 20px;
         }
         .file-input {
             display: none;
         }
         .file-label {
-            background: #4a5568;
+            background: #0078d4;
             color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s ease;
         }
         .file-label:hover {
-            background: #2d3748;
+            background: #005a9e;
         }
         .recent-files {
-            margin-top: 20px;
+            margin-bottom: 20px;
             background: white;
-            border-radius: 15px;
+            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         .recent-files ul {
             list-style: none;
@@ -67,125 +108,169 @@
             border-bottom: 1px solid #e2e8f0;
         }
         .preview-box {
-            margin-top: 30px;
-            background: white;
-            border-radius: 15px;
+            background: #f3f6f9;
+            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             display: none;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .page {
-            background: white;
-            margin: 10px auto;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            width: 8.5in;
-            min-height: 11in;
-            position: relative;
-        }
-        .editor {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 15px;
-            min-height: 300px;
-            outline: none;
-            position: relative;
-        }
-        .draggable {
-            position: absolute;
-            cursor: move;
-            border: 1px dashed #ccc;
-            padding: 5px;
-            background: rgba(255, 255, 255, 0.8);
         }
         .toolbar {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px;
+            background: #f3f6f9;
+            border-bottom: 1px solid #d3d3d3;
             position: sticky;
             top: 0;
-            background: white;
-            padding: 10px;
             z-index: 10;
+            flex-wrap: wrap;
         }
         .toolbar button {
-            background: #4a5568;
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
+            background: #fff;
+            border: 1px solid #d3d3d3;
+            padding: 5px 10px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s ease;
         }
         .toolbar button:hover {
-            background: #2d3748;
+            background: #e6e6e6;
         }
         .search-bar {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-top: 20px;
+            margin-left: 10px;
         }
         .search-bar input {
-            padding: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 300px;
+            padding: 8px;
+            border: 1px solid #d3d3d3;
+            border-radius: 5px;
+            width: 200px;
+        }
+        .page {
+            background: white;
+            margin: 20px auto;
+            padding: 1in;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 8.5in;
+            min-height: 11in;
+            position: relative;
+            border: 1px solid #d3d3d3;
+        }
+        .editor {
+            min-height: 9in;
+            outline: none;
+            position: relative;
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.5;
+        }
+        .text-block {
+            position: relative;
+            white-space: pre-wrap;
+        }
+        .shape-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #0078d4;
+            opacity: 0.5;
+            position: absolute;
+        }
+        .shape-line {
+            width: 100px;
+            height: 2px;
+            background: #0078d4;
+            transform-origin: left;
+            position: absolute;
         }
         .progress-bar {
             width: 0%;
-            height: 10px;
-            background: #4a5568;
-            border-radius: 5px;
+            height: 8px;
+            background: #0078d4;
+            border-radius: 4px;
             transition: width 0.3s ease;
             margin-top: 10px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .pagination {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            background: #f3f6f9;
+            padding: 5px;
+            border-radius: 5px;
         }
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .ruler {
+            width: 8.5in;
+            height: 20px;
+            background: #f3f6f9;
+            border-bottom: 1px solid #d3d3d3;
+            margin: 0 auto;
+            position: relative;
+        }
+        .ruler::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 1in;
+            right: 1in;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                #d3d3d3,
+                #d3d3d3 1px,
+                transparent 1px,
+                transparent 10px
+            );
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">Bienvenido a Luis Convert</h1>
-        <div class="recent-files" id="recentFiles">
-            <h2 class="text-xl font-bold mb-4">Archivos Recientes</h2>
-            <ul id="recentFilesList"></ul>
+        <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h2>Organizar Páginas</h2>
+            <div id="thumbnails"></div>
         </div>
-        <div class="upload-box">
-            <label for="fileInput" class="file-label">
-                <i class="fas fa-upload mr-2"></i> Subir Archivo (PDF, Word, Excel, PowerPoint)
-            </label>
-            <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="preview-box" id="previewBox">
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Buscar palabra...">
-                <button onclick="searchText()" class="toolbar-button">
-                    <i class="fas fa-search"></i>
-                </button>
+        <div class="main-content">
+            <h1 class="title">Bienvenido a Luis Convert</h1>
+            <div class="recent-files" id="recentFiles">
+                <h2 class="text-xl font-bold mb-4">Archivos Recientes</h2>
+                <ul id="recentFilesList"></ul>
             </div>
-            <div class="toolbar">
-                <button onclick="convertToPDF()"><i class="fas fa-file-pdf mr-2"></i> Convertir a PDF</button>
-                <button onclick="convertToWord()"><i class="fas fa-file-word mr-2"></i> Convertir a Word</button>
-                <button onclick="boldText()"><i class="fas fa-bold mr-2"></i> Negrita</button>
-                <button onclick="italicText()"><i class="fas fa-italic mr-2"></i> Cursiva</button>
-                <button onclick="underlineText()"><i class="fas fa-underline mr-2"></i> Subrayar</button>
-                <button onclick="changeFontSize('increase')"><i class="fas fa-font mr-2"></i> Aumentar Tamaño</button>
-                <button onclick="changeFontSize('decrease')"><i class="fas fa-font mr-2"></i> Reducir Tamaño</button>
-                <button onclick="addImage()"><i class="fas fa-image mr-2"></i> Agregar Imagen</button>
-                <button onclick="saveChanges()"><i class="fas fa-save mr-2"></i> Guardar Cambios</button>
+            <div class="upload-box">
+                <label for="fileInput" class="file-label">
+                    <i class="fas fa-upload mr-2"></i> Subir Archivo (PDF, Word, Excel, PowerPoint)
+                </label>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div id="pages"></div>
+            <div class="preview-box" id="previewBox">
+                <div class="toolbar">
+                    <button onclick="boldText()" title="Negrita"><i class="fas fa-bold"></i></button>
+                    <button onclick="italicText()" title="Cursiva"><i class="fas fa-italic"></i></button>
+                    <button onclick="underlineText()" title="Subrayar"><i class="fas fa-underline"></i></button>
+                    <button onclick="changeFontSize('increase')" title="Aumentar Tamaño"><i class="fas fa-font"></i> +</button>
+                    <button onclick="changeFontSize('decrease')" title="Reducir Tamaño"><i class="fas fa-font"></i> -</button>
+                    <button onclick="addImage()" title="Insertar Imagen"><i class="fas fa-image"></i></button>
+                    <button onclick="addCircle()" title="Insertar Círculo"><i class="fas fa-circle"></i></button>
+                    <button onclick="addLine()" title="Insertar Línea"><i class="fas fa-minus"></i></button>
+                    <button onclick="convertToPDF()" title="Convertir a PDF"><i class="fas fa-file-pdf"></i></button>
+                    <button onclick="convertToWord()" title="Convertir a Word"><i class="fas fa-file-word"></i></button>
+                    <button onclick="saveChanges()" title="Guardar"><i class="fas fa-save"></i></button>
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Buscar...">
+                        <button onclick="searchText()" title="Buscar"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="ruler"></div>
+                <div id="pages"></div>
+                <div class="pagination" id="pagination"></div>
+            </div>
         </div>
     </div>
 
@@ -202,6 +287,9 @@
         const pagesContainer = document.getElementById('pages');
         const progressBar = document.getElementById('progressBar');
         const recentFilesList = document.getElementById('recentFilesList');
+        const pagination = document.getElementById('pagination');
+        const thumbnails = document.getElementById('thumbnails');
+        const sidebar = document.getElementById('sidebar');
         let currentFileType = '';
         let currentFileName = '';
         let currentPages = [];
@@ -220,6 +308,12 @@
 
         fileInput.addEventListener('change', handleFileUpload);
 
+        function toggleSidebar() {
+            sidebar.classList.toggle('hidden');
+            const toggleBtn = document.querySelector('.sidebar-toggle');
+            toggleBtn.innerHTML = sidebar.classList.contains('hidden') ? '<i class="fas fa-chevron-right"></i>' : '<i class="fas fa-chevron-left"></i>';
+        }
+
         async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -229,7 +323,6 @@
             previewBox.style.display = 'block';
             progressBar.style.width = '0%';
 
-            // Simulate progress for large files
             const fileSize = file.size / 1024 / 1024; // Size in MB
             const interval = setInterval(() => {
                 let currentWidth = parseInt(progressBar.style.width);
@@ -238,7 +331,7 @@
                 } else {
                     clearInterval(interval);
                 }
-            }, fileSize > 5 ? 500 : 200); // Slower for larger files
+            }, fileSize > 5 ? 500 : 200);
 
             const arrayBuffer = await file.arrayBuffer();
             progressBar.style.width = '100%';
@@ -254,43 +347,61 @@
             }
 
             saveToIndexedDB(arrayBuffer);
-            makeElementsDraggable();
+            updateThumbnails();
+            updatePagination();
         }
 
         async function renderPDF(arrayBuffer) {
             const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
             pagesContainer.innerHTML = '';
+            thumbnails.innerHTML = '';
             currentPages = [];
 
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.5 });
+                const viewport = page.getViewport({ scale: 1.0 });
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
                 await page.render({ canvasContext: context, viewport }).promise;
+
+                // Create page
                 const pageDiv = document.createElement('div');
                 pageDiv.className = 'page';
                 pageDiv.appendChild(canvas);
 
                 const editor = document.createElement('div');
                 editor.className = 'editor';
-                editor.contentEditable = true;
                 const textContent = await page.getTextContent();
+                let currentY = 0;
                 textContent.items.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = 'draggable';
-                    div.style.left = `${item.transform[4]}px`;
-                    div.style.top = `${viewport.height - item.transform[5]}px`;
+                    div.className = 'text-block';
+                    div.style.left = `${item.transform[4] / 2}px`;
+                    div.style.top = `${currentY}px`;
                     div.innerText = item.str;
+                    div.contentEditable = true;
                     editor.appendChild(div);
+                    currentY += item.height + 2; // Adjust spacing
                 });
 
                 pageDiv.appendChild(editor);
                 pagesContainer.appendChild(pageDiv);
                 currentPages.push(pageDiv);
+
+                // Create thumbnail
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 100;
+                thumbCanvas.height = 141; // A4 aspect ratio
+                const thumbContext = thumbCanvas.getContext('2d');
+                thumbContext.drawImage(canvas, 0, 0, 100, 141);
+                thumbCanvas.className = 'thumbnail';
+                thumbCanvas.onclick = () => {
+                    pageDiv.scrollIntoView({ behavior: 'smooth' });
+                };
+                thumbnails.appendChild(thumbCanvas);
             }
         }
 
@@ -302,32 +413,47 @@
             const xmlDoc = parser.parseFromString(xmlFile, 'text/xml');
             const paragraphs = xmlDoc.getElementsByTagName('w:p');
             pagesContainer.innerHTML = '';
+            thumbnails.innerHTML = '';
             currentPages = [];
 
             const pageDiv = document.createElement('div');
             pageDiv.className = 'page';
             const editor = document.createElement('div');
             editor.className = 'editor';
-            editor.contentEditable = true;
+            let currentY = 0;
 
             Array.from(paragraphs).forEach(p => {
                 const textEls = p.getElementsByTagName('w:t');
                 const div = document.createElement('div');
-                div.className = 'draggable';
+                div.className = 'text-block';
                 let text = '';
                 Array.from(textEls).forEach(t => text += t.textContent);
                 div.innerText = text;
+                div.style.top = `${currentY}px`;
+                div.contentEditable = true;
                 editor.appendChild(div);
+                currentY += 20; // Adjust spacing
             });
 
             pageDiv.appendChild(editor);
             pagesContainer.appendChild(pageDiv);
             currentPages.push(pageDiv);
+
+            // Create thumbnail
+            const thumbCanvas = document.createElement('canvas');
+            thumbCanvas.width = 100;
+            thumbCanvas.height = 141;
+            thumbCanvas.className = 'thumbnail';
+            thumbCanvas.onclick = () => {
+                pageDiv.scrollIntoView({ behavior: 'smooth' });
+            };
+            thumbnails.appendChild(thumbCanvas);
         }
 
         async function renderExcel(arrayBuffer) {
             const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
             pagesContainer.innerHTML = '';
+            thumbnails.innerHTML = '';
             currentPages = [];
 
             workbook.SheetNames.forEach(sheetName => {
@@ -336,26 +462,36 @@
                 pageDiv.className = 'page';
                 const editor = document.createElement('div');
                 editor.className = 'editor';
-                editor.contentEditable = true;
                 const html = XLSX.utils.sheet_to_html(sheet);
                 const div = document.createElement('div');
-                div.className = 'draggable';
+                div.className = 'text-block';
                 div.innerHTML = html;
+                div.contentEditable = true;
                 editor.appendChild(div);
                 pageDiv.appendChild(editor);
                 pagesContainer.appendChild(pageDiv);
                 currentPages.push(pageDiv);
+
+                // Create thumbnail
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 100;
+                thumbCanvas.height = 141;
+                thumbCanvas.className = 'thumbnail';
+                thumbCanvas.onclick = () => {
+                    pageDiv.scrollIntoView({ behavior: 'smooth' });
+                };
+                thumbnails.appendChild(thumbCanvas);
             });
         }
 
         async function renderPowerPoint(arrayBuffer) {
             pagesContainer.innerHTML = '';
+            thumbnails.innerHTML = '';
             currentPages = [];
-            // Note: pptxjs is limited; using basic text extraction as fallback
             const zip = new JSZip();
             const unzipped = await zip.loadAsync(arrayBuffer);
             const slideFiles = Object.keys(unzipped.files).filter(f => f.startsWith('ppt/slides/slide'));
-            
+
             for (const slideFile of slideFiles) {
                 const xml = await unzipped.file(slideFile).async('string');
                 const parser = new DOMParser();
@@ -365,37 +501,48 @@
                 pageDiv.className = 'page';
                 const editor = document.createElement('div');
                 editor.className = 'editor';
-                editor.contentEditable = true;
+                let currentY = 0;
 
                 Array.from(texts).forEach(t => {
                     const div = document.createElement('div');
-                    div.className = 'draggable';
+                    div.className = 'text-block';
                     div.innerText = t.textContent;
+                    div.style.top = `${currentY}px`;
+                    div.contentEditable = true;
                     editor.appendChild(div);
+                    currentY += 20;
                 });
 
                 pageDiv.appendChild(editor);
                 pagesContainer.appendChild(pageDiv);
                 currentPages.push(pageDiv);
+
+                // Create thumbnail
+                const thumbCanvas = document.createElement('canvas');
+                thumbCanvas.width = 100;
+                thumbCanvas.height = 141;
+                thumbCanvas.className = 'thumbnail';
+                thumbCanvas.onclick = () => {
+                    pageDiv.scrollIntoView({ behavior: 'smooth' });
+                };
+                thumbnails.appendChild(thumbCanvas);
             }
         }
 
-        function makeElementsDraggable() {
-            const draggables = document.querySelectorAll('.draggable');
-            draggables.forEach(draggable => {
-                draggable.addEventListener('mousedown', (e) => {
-                    let offsetX = e.offsetX;
-                    let offsetY = e.offsetY;
-                    function move(e) {
-                        draggable.style.left = `${e.clientX - offsetX}px`;
-                        draggable.style.top = `${e.clientY - offsetY}px`;
-                    }
-                    document.addEventListener('mousemove', move);
-                    document.addEventListener('mouseup', () => {
-                        document.removeEventListener('mousemove', move);
-                    }, { once: true });
-                });
-            });
+        function addCircle() {
+            const circle = document.createElement('div');
+            circle.className = 'shape-circle';
+            circle.style.left = '50px';
+            circle.style.top = '50px';
+            currentPages[0].querySelector('.editor').appendChild(circle);
+        }
+
+        function addLine() {
+            const line = document.createElement('div');
+            line.className = 'shape-line';
+            line.style.left = '50px';
+            line.style.top = '50px';
+            currentPages[0].querySelector('.editor').appendChild(line);
         }
 
         function convertToPDF() {
@@ -466,13 +613,12 @@
                 reader.onload = (event) => {
                     const img = document.createElement('img');
                     img.src = event.target.result;
-                    img.className = 'draggable';
+                    img.className = 'text-block';
                     img.style.width = '100px';
                     img.style.position = 'absolute';
                     img.style.left = '50px';
                     img.style.top = '50px';
                     currentPages[0].querySelector('.editor').appendChild(img);
-                    makeElementsDraggable();
                 };
                 reader.readAsDataURL(file);
             };
@@ -538,7 +684,8 @@
                 } else {
                     pagesContainer.innerHTML = file.data;
                 }
-                makeElementsDraggable();
+                updateThumbnails();
+                updatePagination();
             };
         }
 
@@ -555,12 +702,35 @@
 
             currentPages.forEach(page => {
                 const editor = page.querySelector('.editor');
-                const elements = editor.querySelectorAll('.draggable');
+                const elements = editor.querySelectorAll('.text-block');
                 elements.forEach(el => {
                     const text = el.innerText;
                     const regex = new RegExp(searchTerm, 'gi');
                     el.innerHTML = text.replace(regex, match => `<span style="background: yellow">${match}</span>`);
                 });
+            });
+        }
+
+        function updatePagination() {
+            pagination.innerText = `Página 1 de ${currentPages.length}`;
+        }
+
+        function updateThumbnails() {
+            thumbnails.innerHTML = '';
+            currentPages.forEach((page, index) => {
+                const canvas = page.querySelector('canvas');
+                if (canvas) {
+                    const thumbCanvas = document.createElement('canvas');
+                    thumbCanvas.width = 100;
+                    thumbCanvas.height = 141;
+                    const thumbContext = thumbCanvas.getContext('2d');
+                    thumbContext.drawImage(canvas, 0, 0, 100, 141);
+                    thumbCanvas.className = 'thumbnail';
+                    thumbCanvas.onclick = () => {
+                        page.scrollIntoView({ behavior: 'smooth' });
+                    };
+                    thumbnails.appendChild(thumbCanvas);
+                }
             });
         }
     </script>
